@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jornada - Controle Uber</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="max-w-4xl mx-auto my-8 p-6 bg-white rounded-lg shadow-md">
+        <div class="flex justify-between items-center border-b pb-4 mb-6">
+            <h1 id="tituloPagina" class="text-2xl font-bold text-gray-800">Registrar Fechamento do Dia</h1>
+            <a href="dashboard.html" class="text-blue-600 hover:underline">← Voltar ao Dashboard</a>
+        </div>
+
+        <form id="formJornada" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Data do Trabalho</label>
+                    <input type="date" id="data_registro" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-50 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Combustível Utilizado</label>
+                    <select id="id_combustivel" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-50 border">
+                        <option value="">Carregando combustíveis...</option>
+                    </select>
+                </div>
+            </div>
+
+            <hr>
+
+            <h2 class="text-lg font-semibold text-gray-700">Logística e Internet</h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">KM Inicial</label>
+                    <input type="number" step="0.1" id="km_inicio" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-50 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">KM Final</label>
+                    <input type="number" step="0.1" id="km_fim" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-50 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Hora Início</label>
+                    <input type="time" id="hora_inicio" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-50 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Hora Fim</label>
+                    <input type="time" id="hora_fim" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-50 border">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Internet Inicial (MB)</label>
+                    <input type="number" step="0.01" id="internet_mb_inicio" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-50 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Internet Final (MB)</label>
+                    <input type="number" step="0.01" id="internet_mb_fim" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-50 border">
+                </div>
+            </div>
+
+            <hr>
+
+            <h2 class="text-lg font-semibold text-gray-700">Métricas do App Uber</h2>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Valor Ganhos (R$)</label>
+                    <input type="number" step="0.01" id="valor_recebido" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-50 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Qtd Viagens</label>
+                    <input type="number" id="qtd_viagens" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-50 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Pontuação</label>
+                    <input type="number" id="pontuacao" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-50 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Taxa Aceitação (%)</label>
+                    <input type="number" step="0.1" id="taxa_aceitacao" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-50 border">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Nota do Dia</label>
+                    <input type="number" step="0.01" min="0" max="5" id="nota_final_dia" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2 bg-gray-50 border">
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <button type="submit" id="btnSalvar" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded shadow-md transition duration-200">
+                    Salvar Dados do Dia
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        
+        // Pega o ID da URL se existir (?id=X)
+        const urlParams = new URLSearchParams(window.location.search);
+        const idEdicao = urlParams.get('id');
+
+        async function carregarFormulario() {
+            // 1. Carrega Combustíveis
+            try {
+                const res = await fetch(`${API_URL}/combustiveis`);
+                const combustiveis = await res.json();
+                const select = document.getElementById('id_combustivel');
+                select.innerHTML = '<option value="">Selecione...</option>';
+                combustiveis.forEach(c => {
+                    select.innerHTML += `<option value="${c.id_combustivel}">${c.nome}</option>`;
+                });
+            } catch (err) { console.error(err); }
+
+            // 2. Se for Edição, preenche os campos
+            if (idEdicao) {
+                document.getElementById('tituloPagina').innerText = 'Editar Registro da Jornada';
+                document.getElementById('btnSalvar').innerText = 'Atualizar Alterações';
+                document.getElementById('btnSalvar').classList.replace('bg-green-600', 'bg-blue-600');
+                document.getElementById('btnSalvar').classList.replace('hover:bg-green-700', 'hover:bg-blue-700');
+                
+                // Trava a alteração da data, pois ela identifica o registro
+                document.getElementById('data_registro').disabled = true;
+
+                // Recupera a lista salva no sessionStorage para pegar os valores antigos sem precisar de outro fetch
+                const jornadas = JSON.parse(sessionStorage.getItem('jornadas') || '[]');
+                const dadosAntigos = jornadas.find(j => j.id_dia == idEdicao);
+
+                if (dadosAntigos) {
+                    // Preenche a data convertendo para o formato do input (YYYY-MM-DD)
+                    document.getElementById('data_registro').value = dadosAntigos.data.split('T')[0];
+                    document.getElementById('id_combustivel').value = dadosAntigos.id_combustivel;
+                    document.getElementById('km_inicio').value = dadosAntigos.km_inicio;
+                    document.getElementById('km_fim').value = dadosAntigos.km_fim;
+                    document.getElementById('hora_inicio').value = dadosAntigos.hora_inicio.substring(0,5);
+                    document.getElementById('hora_fim').value = dadosAntigos.hora_fim.substring(0,5);
+                    document.getElementById('internet_mb_inicio').value = dadosAntigos.internet_mb_inicio;
+                    document.getElementById('internet_mb_fim').value = dadosAntigos.internet_mb_fim;
+                    document.getElementById('valor_recebido').value = dadosAntigos.valor_recebido;
+                    document.getElementById('qtd_viagens').value = dadosAntigos.qtd_viagens;
+                    document.getElementById('pontuacao').value = dadosAntigos.pontuacao;
+                    document.getElementById('taxa_aceitacao').value = dadosAntigos.taxa_aceitacao;
+                    document.getElementById('nota_final_dia').value = dadosAntigos.nota_final_dia;
+                }
+            }
+        }
+
+        document.getElementById('formJornada').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const payload = {
+                data_registro: document.getElementById('data_registro').value,
+                id_combustivel: parseInt(document.getElementById('id_combustivel').value),
+                km_inicio: parseFloat(document.getElementById('km_inicio').value),
+                km_fim: parseFloat(document.getElementById('km_fim').value),
+                hora_inicio: document.getElementById('hora_inicio').value + ":00",
+                hora_fim: document.getElementById('hora_fim').value + ":00",
+                internet_mb_inicio: parseFloat(document.getElementById('internet_mb_inicio').value),
+                internet_mb_fim: parseFloat(document.getElementById('internet_mb_fim').value),
+                valor_recebido: parseFloat(document.getElementById('valor_recebido').value),
+                qtd_viagens: parseInt(document.getElementById('qtd_viagens').value),
+                pontuacao: parseInt(document.getElementById('pontuacao').value),
+                taxa_aceitacao: parseFloat(document.getElementById('taxa_aceitacao').value),
+                nota_final_dia: parseFloat(document.getElementById('nota_final_dia').value)
+            };
+
+            // Define se vai disparar POST (criar) ou PUT (atualizar)
+            const url = idEdicao ? `${API_URL}/jornada/${idEdicao}` : `${API_URL}/jornada`;
+            const metodo = idEdicao ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetch(url, {
+                    method: metodo,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    alert(idEdicao ? 'Registro atualizado!' : 'Dados salvos com sucesso!');
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert('Erro: ' + data.error);
+                }
+            } catch (err) {
+                alert('Falha na comunicação com a API.');
+            }
+        });
+
+        carregarFormulario();
+    </script>
+</body>
+</html>

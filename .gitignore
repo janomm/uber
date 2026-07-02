@@ -1,0 +1,36 @@
+# ==========================================
+# DEPENDÊNCIAS (Não commitar, pois mudam constantemente)
+# ==========================================
+node_modules/
+jspm_packages/
+web_modules/
+
+# ==========================================
+# CONFIGURAÇÕES AMBIENTAIS E SEGURANÇA (CRÍTICO)
+# ==========================================
+.env
+.env.local
+.env.*.local
+*.env
+
+# ==========================================
+# LOGS DE ERRO E EXECUÇÃO
+# ==========================================
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ==========================================
+# ARQUIVOS DO SISTEMA OPERACIONAL / IDEs
+# ==========================================
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
